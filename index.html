@@ -2,584 +2,677 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Design by JIWJIW - Space Math Shooter</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Design by JIWJIW - Galactic Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Mitr:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        body {
-            background-color: #0b0a12;
-            color: #fff;
-            font-family: 'Prompt', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        html, body {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            background-color: #020208;
+            color: #fff;
+            font-family: 'Mitr', sans-serif;
         }
 
-        /* Outer Frame / Game Canvas Container */
         #game-container {
             position: relative;
-            width: 420px;
-            height: 750px;
-            background: #090914;
-            border: 2px solid #2d2f4d;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 243, 255, 0.15);
-            border-radius: 8px;
+            width: 100vw;
+            height: 100vh;
+            background: #020208;
             overflow: hidden;
-            touch-action: none;
         }
 
-        /* Top Header Area (SCORE & TIME) */
-        #top-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 13px;
-            color: #8f9bba;
-            letter-spacing: 1px;
-            background: linear-gradient(180deg, rgba(9, 9, 20, 0.9) 0%, rgba(9, 9, 20, 0) 100%);
-        }
-
-        #score-val, #time-val {
-            color: #00f3ff;
-        }
-
-        /* Circle Question Container (Fixed Top Center) */
-        #question-circle {
-            position: absolute;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            border: 2px dashed #00f3ff;
-            background: radial-gradient(circle, rgba(20, 24, 45, 0.8) 0%, rgba(9, 9, 20, 0.95) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 5;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
-        }
-
-        #question-text {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 15px;
-            color: #00f3ff;
-            text-align: center;
-        }
-
-        /* Canvas for Stars, Meteors, Rockets & Bullets */
-        canvas {
+        canvas#space-canvas, canvas#game-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
         }
 
-        /* Start / Register Overlay */
+        canvas#space-canvas { z-index: 1; }
+        canvas#game-canvas { z-index: 15; }
+
+        /* 🌌 เอฟเฟกต์เนบิวลาเคลื่อนไหว */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 2;
+            animation: nebulaPulse 12s ease-in-out infinite alternate;
+        }
+
+        .nebula-1 {
+            top: -10%; left: -10%;
+            width: 60vw; height: 60vw;
+            background: radial-gradient(circle, #ff0077 0%, #7928ca 50%, transparent 70%);
+        }
+
+        .nebula-2 {
+            bottom: -15%; right: -10%;
+            width: 65vw; height: 65vw;
+            background: radial-gradient(circle, #00f3ff 0%, #0d1b40 50%, transparent 70%);
+            animation-delay: -6s;
+        }
+
+        .nebula-3 {
+            top: 40%; left: 30%;
+            width: 40vw; height: 40vw;
+            background: radial-gradient(circle, #7928ca 0%, #ff0055 40%, transparent 70%);
+            animation-duration: 16s;
+        }
+
+        @keyframes nebulaPulse {
+            0% { transform: scale(1) translate(0, 0) rotate(0deg); opacity: 0.4; }
+            50% { transform: scale(1.25) translate(3vw, 2vh) rotate(180deg); opacity: 0.65; }
+            100% { transform: scale(0.95) translate(-2vw, -3vh) rotate(360deg); opacity: 0.4; }
+        }
+
+        /* 🪐 ไอคอนอวกาศลอย */
+        .space-asset {
+            position: absolute;
+            z-index: 3;
+            pointer-events: none;
+            filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.6));
+        }
+
+        .astronaut-large {
+            top: 10%; right: 8%;
+            font-size: clamp(60px, 9vw, 110px);
+            animation: floatAstronaut 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatAstronaut {
+            0% { transform: translateY(0) rotate(0deg) scale(1); }
+            50% { transform: translateY(-35px) rotate(12deg) scale(1.05); }
+            100% { transform: translateY(15px) rotate(-8deg) scale(0.98); }
+        }
+
+        .planet-giant {
+            bottom: 5%; left: 6%;
+            font-size: clamp(80px, 12vw, 140px);
+            animation: floatPlanet 10s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 30px rgba(255, 0, 119, 0.5));
+        }
+
+        @keyframes floatPlanet {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-40px) rotate(-20deg); }
+        }
+
+        .bg-rocket {
+            position: absolute;
+            font-size: 50px;
+            z-index: 2;
+            pointer-events: none;
+            animation: rocketFly 14s linear infinite;
+            filter: drop-shadow(0 0 20px #ff3300);
+        }
+
+        @keyframes rocketFly {
+            0% { transform: translate(-10vw, 80vh) rotate(45deg) scale(0.6); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(110vw, -10vh) rotate(45deg) scale(1.2); opacity: 0; }
+        }
+
+        /* 🛸 Overlay หน้าเมนู */
         #start-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(9, 9, 20, 0.92);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-            padding: 20px;
-            text-align: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 50; padding: 20px;
+        }
+
+        .energy-ring {
+            position: absolute;
+            width: clamp(380px, 45vw, 580px);
+            height: clamp(380px, 45vw, 580px);
+            border-radius: 50%;
+            border: 2px dashed rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+            animation: spinRing 20s linear infinite;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .energy-ring-2 {
+            width: clamp(420px, 50vw, 640px);
+            height: clamp(420px, 50vw, 640px);
+            border: 2px solid rgba(255, 0, 119, 0.3);
+            border-top-color: transparent; border-bottom-color: transparent;
+            animation: spinRing 14s linear infinite reverse;
+        }
+
+        @keyframes spinRing { 100% { transform: rotate(360deg); } }
+
+        .glass-card-extreme {
+            position: relative; z-index: 5;
+            background: rgba(8, 11, 28, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid #00f3ff;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4), inset 0 0 25px rgba(0, 243, 255, 0.2), 0 20px 50px rgba(0, 0, 0, 0.8);
+            border-radius: 28px;
+            padding: clamp(35px, 5vw, 50px) clamp(25px, 4vw, 45px);
+            max-width: 480px; width: 100%; text-align: center;
+            animation: cardGlowPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes cardGlowPulse {
+            0% { border-color: #00f3ff; box-shadow: 0 0 30px rgba(0, 243, 255, 0.4), inset 0 0 20px rgba(0, 243, 255, 0.2); }
+            100% { border-color: #ff0077; box-shadow: 0 0 50px rgba(255, 0, 119, 0.6), inset 0 0 30px rgba(255, 0, 119, 0.3); }
         }
 
         .title-main {
             font-family: 'Press Start 2P', monospace;
-            font-size: 15px;
+            font-size: clamp(15px, 2.3vw, 20px);
             color: #00f3ff;
-            text-shadow: 2px 2px #ff0055, -2px -2px #00f3ff;
-            line-height: 1.6;
-            margin-bottom: 8px;
+            text-shadow: 3px 3px 0px #ff0077, -2px -2px 0px #020208, 0 0 15px rgba(0, 243, 255, 0.8);
+            line-height: 1.5; margin-bottom: 15px;
         }
 
         .title-sub {
-            font-size: 12px;
-            color: #ffd700;
-            margin-bottom: 20px;
-            letter-spacing: 0.5px;
+            font-size: 16px; color: #ffea00;
+            text-shadow: 0 0 12px rgba(255, 234, 0, 0.6);
+            margin-bottom: 25px; font-weight: 700;
         }
 
-        .instruction-text {
-            font-size: 13px;
-            color: #00f3ff;
-            margin-bottom: 15px;
+        .instruction-text { font-size: 14px; color: #a4b3d6; margin-bottom: 22px; }
+
+        .input-box-neon {
+            width: 100%; padding: 16px 22px;
+            background: rgba(3, 5, 18, 0.9);
+            border: 2px solid #00f3ff; border-radius: 14px;
+            color: #ffffff; font-family: 'Mitr', sans-serif; font-size: 16px;
+            text-align: center; outline: none; margin-bottom: 18px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            transition: all 0.3s;
         }
 
-        .login-form {
-            width: 100%;
-            max-width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .input-box-neon:focus {
+            border-color: #ff0077; box-shadow: 0 0 25px rgba(255, 0, 119, 0.6); transform: scale(1.02);
         }
 
-        .input-box {
-            width: 100%;
-            padding: 12px 15px;
-            background: #121324;
-            border: 2px solid #00f3ff;
-            border-radius: 8px;
-            color: #ffffff;
-            font-family: 'Prompt', sans-serif;
-            font-size: 15px;
-            text-align: center;
-            outline: none;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        .btn-start-epic {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #ff0077 0%, #ff3300 100%);
+            border: none; border-radius: 14px;
+            color: #ffffff; font-family: 'Press Start 2P', monospace; font-size: 15px;
+            cursor: pointer; box-shadow: 0 6px 0 #990033, 0 0 30px rgba(255, 0, 119, 0.7);
+            transition: all 0.15s;
         }
 
-        .input-box::placeholder {
-            color: #5d6785;
+        .btn-start-epic:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        .btn-start-epic:active { transform: translateY(4px); box-shadow: 0 2px 0 #990033; }
+
+        /* UI ในเกม */
+        #hud-layer {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 20px 30px; display: none; justify-content: space-between;
+            align-items: center; z-index: 20;
+            font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 20px;
         }
 
-        .btn-start {
-            width: 100%;
-            padding: 12px;
-            background: #ff0055;
-            border: 2px solid #ff3377;
-            border-radius: 8px;
-            color: #ffffff;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #990033, 0 0 15px rgba(255, 0, 85, 0.5);
+        .hud-badge {
+            background: rgba(8, 11, 28, 0.8);
+            border: 2px solid #00f3ff; border-radius: 20px;
+            padding: 8px 20px; color: #00f3ff;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            display: flex; gap: 8px; align-items: center;
         }
 
-        .btn-start:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #990033;
-        }
-
-        /* On-Screen Mobile Controls (วิธียิง/เลื่อน) */
-        #controls-hint {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            font-size: 11px;
-            color: #5d6785;
-            text-align: center;
-            pointer-events: none;
+        #math-quiz {
+            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 20; display: none;
+            background: rgba(8, 11, 28, 0.9); border: 2px solid #ff0077;
+            padding: 12px 35px; border-radius: 30px;
+            font-family: 'Press Start 2P', monospace; font-size: 22px; color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 119, 0.6);
         }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <!-- Top Bar -->
-    <div id="top-bar">
-        <div>SCORE: <span id="score-val">0</span></div>
-        <div>TIME: <span id="time-val">60s</span></div>
+    <canvas id="space-canvas"></canvas>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 🌌 ฉากหลังเนบิวลา + อวกาศ -->
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+
+    <div class="space-asset astronaut-large">👨‍🚀</div>
+    <div class="space-asset planet-giant">🪐</div>
+    <div class="bg-rocket">🚀</div>
+
+    <!-- HUD แสดงคะแนน & เวลา -->
+    <div id="hud-layer">
+        <div class="hud-badge">SCORE: <span id="score-text" style="color:#fff">0</span></div>
+        <div class="hud-badge" id="power-indicator" style="display:none; border-color:#ffea00; color:#ffea00;">RAPID FIRE!</div>
+        <div class="hud-badge">TIME: <span id="time-text" style="color:#ff0077">60s</span></div>
     </div>
 
-    <!-- Center Circle Question Display -->
-    <div id="question-circle">
-        <div id="question-text">1+1=?</div>
-    </div>
+    <!-- โจทย์คณิตศาสตร์ -->
+    <div id="math-quiz">? + ?</div>
 
-    <!-- Game Canvas -->
-    <canvas id="gameCanvas"></canvas>
-
-    <div id="controls-hint">กด ← → / A D ควบคุม | Spacebar ยิง<br>(หรือ ลาก/แตะที่จอ เพื่อเลื่อนยานและยิง)</div>
-
-    <!-- Login / Registration Modal -->
+    <!-- 🛸 Start Menu -->
     <div id="start-overlay">
-        <div class="title-main">Game Design by JIWJIW</div>
-        <div class="title-sub">จรวดตะลุยอวกาศ</div>
-        <div class="instruction-text">กรอกชื่อเพื่อลงทะเบียนเริ่มเล่น</div>
-        
-        <form class="login-form" onsubmit="startGame(event)">
-            <input type="text" id="player-name" class="input-box" placeholder="ชื่อผู้เล่น / ชื่อเล่น" required autocomplete="off">
-            <button type="submit" class="btn-start">START GAME</button>
-        </form>
+        <div class="energy-ring"></div>
+        <div class="energy-ring energy-ring-2"></div>
+
+        <div class="glass-card-extreme">
+            <div class="title-main">Game Design by<br>JIWJIW</div>
+            <div class="title-sub">🚀 จรวดตะลุยอวกาศคณิตศาสตร์</div>
+            <div class="instruction-text">กรอกชื่อผู้เล่นเพื่อเข้าสู่การรบอวกาศ</div>
+            
+            <form onsubmit="handleStart(event)">
+                <input type="text" id="player-name" class="input-box-neon" placeholder="ป้อนชื่อผู้เล่น / ชื่อเล่น" required autocomplete="off">
+                <button type="submit" class="btn-start-epic">START GAME</button>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-    // Web Audio API Sound System
+    // 🎵 Audio Synthesizer (SFX)
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
-    function initAudio() {
-        if (!audioCtx) audioCtx = new AudioContext();
-    }
+    function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
 
-    function playLaserSound() {
+    function soundLaser() {
         if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(700, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(950, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
     }
 
-    function playCorrectSound() {
+    function soundExplode() {
         if (!audioCtx) return;
-        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function soundPowerup() {
+        if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, now); 
-        osc.frequency.setValueAtTime(659.25, now + 0.08); 
-        osc.frequency.setValueAtTime(783.99, now + 0.16); 
-        gain.gain.setValueAtTime(0.25, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.3);
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
     }
 
-    function playWrongSound() {
-        if (!audioCtx) return;
-        const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.setValueAtTime(90, now + 0.12);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.25);
+    // 🌌 Canvas ฉากหลังดาวตก
+    const spaceCanvas = document.getElementById('space-canvas');
+    const spaceCtx = spaceCanvas.getContext('2d');
+    let stars = [], shootingStars = [];
+
+    function resizeSpace() {
+        spaceCanvas.width = window.innerWidth;
+        spaceCanvas.height = window.innerHeight;
     }
 
-    // Canvas Setup
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const container = document.getElementById('game-container');
-
-    function resizeCanvas() {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+    function initStars() {
+        stars = Array.from({ length: 180 }, () => ({
+            x: Math.random() * spaceCanvas.width,
+            y: Math.random() * spaceCanvas.height,
+            size: Math.random() * 2.5 + 0.5,
+            alpha: Math.random(),
+            twinkleSpeed: (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1)
+        }));
     }
-    resizeCanvas();
 
-    // Stars background
-    const stars = Array.from({ length: 60 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 1.5 + 0.5,
-        speed: Math.random() * 0.8 + 0.3
-    }));
+    function renderSpace() {
+        spaceCtx.clearRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+        stars.forEach(star => {
+            star.alpha += star.twinkleSpeed;
+            if (star.alpha >= 1 || star.alpha <= 0.1) star.twinkleSpeed = -star.twinkleSpeed;
+            spaceCtx.fillStyle = `rgba(255, 255, 255, ${Math.abs(star.alpha)})`;
+            spaceCtx.beginPath();
+            spaceCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            spaceCtx.fill();
+        });
 
-    // Player Rocket State
-    const player = {
-        x: canvas.width / 2,
-        y: canvas.height - 80,
-        width: 32,
-        height: 42,
-        speed: 6
-    };
+        if (Math.random() < 0.03) {
+            shootingStars.push({
+                x: Math.random() * spaceCanvas.width * 1.2 - spaceCanvas.width * 0.1,
+                y: Math.random() * (spaceCanvas.height * 0.5),
+                length: Math.random() * 120 + 60,
+                speed: Math.random() * 12 + 8,
+                angle: Math.PI / 4, alpha: 1
+            });
+        }
 
-    // Controls Handling
-    const keys = { Left: false, Right: false, Space: false, canShoot: true };
+        shootingStars.forEach((s, idx) => {
+            s.x += Math.cos(s.angle) * s.speed;
+            s.y += Math.sin(s.angle) * s.speed;
+            s.alpha -= 0.012;
 
+            const grad = spaceCtx.createLinearGradient(s.x, s.y, s.x - Math.cos(s.angle) * s.length, s.y - Math.sin(s.angle) * s.length);
+            grad.addColorStop(0, `rgba(0, 243, 255, ${s.alpha})`);
+            grad.addColorStop(1, 'transparent');
+
+            spaceCtx.strokeStyle = grad;
+            spaceCtx.lineWidth = 3;
+            spaceCtx.beginPath();
+            spaceCtx.moveTo(s.x, s.y);
+            spaceCtx.lineTo(s.x - Math.cos(s.angle) * s.length, s.y - Math.sin(s.angle) * s.length);
+            spaceCtx.stroke();
+
+            if (s.alpha <= 0) shootingStars.splice(idx, 1);
+        });
+
+        requestAnimationFrame(renderSpace);
+    }
+
+    // 🚀 ระบบเกมเพลย์
+    const gameCanvas = document.getElementById('game-canvas');
+    const gameCtx = gameCanvas.getContext('2d');
+
+    let isPlaying = false;
+    let playerName = "";
+    let score = 0, time = 60, timer = null;
+    let screenShake = 0;
+
+    const ship = { x: 0, y: 0, width: 45, speed: 12, powerTimer: 0, shootCooldown: 0 };
+    const keys = { Left: false, Right: false, Space: false };
+    let isTouching = false;
+    let bullets = [], meteors = [], particles = [], powerups = [];
+    let currentQuiz = { ans: 0 };
+
+    function resizeGame() {
+        gameCanvas.width = window.innerWidth;
+        gameCanvas.height = window.innerHeight;
+        ship.y = gameCanvas.height - 90;
+        if (!isPlaying) ship.x = gameCanvas.width / 2;
+    }
+
+    window.addEventListener('resize', () => { resizeSpace(); initStars(); resizeGame(); });
+
+    // Controls
     window.addEventListener('keydown', (e) => {
         if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = true;
         if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = true;
-        if (e.code === 'Space') {
-            if (keys.canShoot && isGameRunning) {
-                shootBullet();
-                keys.canShoot = false;
-            }
-            keys.Space = true;
-        }
+        if (e.code === 'Space') keys.Space = true;
     });
 
     window.addEventListener('keyup', (e) => {
         if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = false;
         if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = false;
-        if (e.code === 'Space') {
-            keys.Space = false;
-            keys.canShoot = true;
-        }
+        if (e.code === 'Space') keys.Space = false;
     });
 
-    // Touch / Pointer controls (ลากจรวด + แตะยิง)
-    let isTouching = false;
-    canvas.addEventListener('pointerdown', (e) => {
-        if (!isGameRunning) return;
+    gameCanvas.addEventListener('pointerdown', (e) => {
+        if (!isPlaying) return;
         isTouching = true;
-        movePlayerToPointer(e);
-        shootBullet();
+        ship.x = e.clientX;
     });
 
-    canvas.addEventListener('pointermove', (e) => {
-        if (isTouching && isGameRunning) {
-            movePlayerToPointer(e);
+    gameCanvas.addEventListener('pointermove', (e) => {
+        if (isPlaying && isTouching) ship.x = e.clientX;
+    });
+
+    gameCanvas.addEventListener('pointerup', () => { isTouching = false; });
+    gameCanvas.addEventListener('pointercancel', () => { isTouching = false; });
+
+    function fireBullet() {
+        soundLaser();
+        if (ship.powerTimer > 0) {
+            bullets.push({ x: ship.x - 18, y: ship.y - 25, speed: 18 });
+            bullets.push({ x: ship.x + 18, y: ship.y - 25, speed: 18 });
+            bullets.push({ x: ship.x, y: ship.y - 35, speed: 20 });
+        } else {
+            bullets.push({ x: ship.x - 10, y: ship.y - 25, speed: 16 });
+            bullets.push({ x: ship.x + 10, y: ship.y - 25, speed: 16 });
         }
-    });
-
-    canvas.addEventListener('pointerup', () => isTouching = false);
-
-    function movePlayerToPointer(e) {
-        const rect = canvas.getBoundingClientRect();
-        const touchX = e.clientX - rect.left;
-        player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, touchX));
     }
 
-    // Game Entities
-    let bullets = [];
-    let meteors = [];
-    let score = 0;
-    let time = 60;
-    let timerInterval = null;
-    let currentQuestion = { num1: 0, num2: 0, answer: 0 };
-    let isGameRunning = false;
-    let playerName = "";
-
-    function shootBullet() {
-        bullets.push({
-            x: player.x,
-            y: player.y - 20,
-            radius: 4,
-            speed: 10
-        });
-        playLaserSound();
+    function createExplosion(x, y, color) {
+        soundExplode();
+        screenShake = 12;
+        for (let i = 0; i < 25; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 0.5) * 14,
+                size: Math.random() * 6 + 2,
+                color: color || '#ff0077',
+                alpha: 1
+            });
+        }
     }
 
-    function startGame(e) {
+    function handleStart(e) {
         e.preventDefault();
         initAudio();
-
         playerName = document.getElementById('player-name').value.trim();
         if (!playerName) return;
 
-        // CRM Leads Storage
-        const leads = JSON.parse(localStorage.getItem('crm_leads') || '[]');
-        leads.push({ name: playerName, timestamp: new Date().toISOString() });
-        localStorage.setItem('crm_leads', JSON.stringify(leads));
-
         document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('hud-layer').style.display = 'flex';
+        document.getElementById('math-quiz').style.display = 'block';
 
-        score = 0;
-        time = 60;
-        document.getElementById('score-val').innerText = score;
-        document.getElementById('time-val').innerText = time + 's';
+        score = 0; time = 60;
+        document.getElementById('score-text').innerText = score;
+        document.getElementById('time-text').innerText = time + 's';
 
-        isGameRunning = true;
-        generateQuestion();
+        isPlaying = true;
+        generateQuiz();
 
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
+        clearInterval(timer);
+        timer = setInterval(() => {
             time--;
-            document.getElementById('time-val').innerText = time + 's';
-            if (time <= 0) endGame();
+            document.getElementById('time-text').innerText = time + 's';
+            if (time <= 0) gameOver();
         }, 1000);
 
         requestAnimationFrame(gameLoop);
     }
 
-    function generateQuestion() {
-        const num1 = Math.floor(Math.random() * 10) + 1;
-        const num2 = Math.floor(Math.random() * 10) + 1;
-        const answer = num1 + num2;
+    function generateQuiz() {
+        const n1 = Math.floor(Math.random() * 12) + 1;
+        const n2 = Math.floor(Math.random() * 12) + 1;
+        const ans = n1 + n2;
+        currentQuiz = { ans };
 
-        currentQuestion = { num1, num2, answer };
-        document.getElementById('question-text').innerText = `${num1}+${num2}=?`;
+        document.getElementById('math-quiz').innerText = `${n1} + ${n2}`;
 
-        // สุ่มสร้างคำตอบ 3 ข้อสำหรับอุกกาบาตลอยลงมา
-        let answers = [answer];
-        while (answers.length < 3) {
-            let wrongAns = answer + (Math.floor(Math.random() * 7) - 3);
-            if (wrongAns > 0 && !answers.includes(wrongAns)) {
-                answers.push(wrongAns);
-            }
+        let choices = [ans];
+        while (choices.length < 4) {
+            let wrong = ans + (Math.floor(Math.random() * 9) - 4);
+            if (wrong > 0 && !choices.includes(wrong)) choices.push(wrong);
         }
-        answers.sort(() => Math.random() - 0.5);
+        choices.sort(() => Math.random() - 0.5);
 
-        // ตำแหน่ง 3 เลนสำหรับอุกกาบาตร่วงลงมา
-        const laneWidth = canvas.width / 3;
-        meteors = answers.map((val, idx) => ({
-            x: laneWidth * idx + laneWidth / 2,
-            y: -40 - (Math.random() * 50),
-            radius: 28,
-            value: val,
-            speed: 1.2 + Math.random() * 0.6
+        const section = gameCanvas.width / 4;
+        meteors = choices.map((val, idx) => ({
+            x: section * idx + section / 2,
+            y: -60,
+            radius: 38,
+            val: val,
+            speed: 2.0 + Math.random() * 1.5
         }));
     }
 
-    function drawRocket(x, y) {
-        ctx.save();
-        ctx.translate(x, y);
-
-        // Flame effect
-        ctx.fillStyle = '#f97316';
-        ctx.beginPath();
-        ctx.moveTo(-6, 18);
-        ctx.lineTo(0, 28 + Math.random() * 6);
-        ctx.lineTo(6, 18);
-        ctx.fill();
-
-        // Main Body
-        ctx.fillStyle = '#cbd5e1';
-        ctx.beginPath();
-        ctx.moveTo(0, -22);
-        ctx.lineTo(-14, 12);
-        ctx.lineTo(14, 12);
-        ctx.closePath();
-        ctx.fill();
-
-        // Rocket Nose
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.moveTo(0, -22);
-        ctx.lineTo(-8, -5);
-        ctx.lineTo(8, -5);
-        ctx.closePath();
-        ctx.fill();
-
-        // Window
-        ctx.fillStyle = '#00f3ff';
-        ctx.beginPath();
-        ctx.arc(0, -2, 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Wings
-        ctx.fillStyle = '#ff0055';
-        ctx.beginPath();
-        ctx.moveTo(-14, 5);
-        ctx.lineTo(-20, 16);
-        ctx.lineTo(-14, 16);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(14, 5);
-        ctx.lineTo(20, 16);
-        ctx.lineTo(14, 16);
-        ctx.fill();
-
-        ctx.restore();
-    }
-
     function gameLoop() {
-        if (!isGameRunning) return;
+        gameCtx.save();
+        
+        // Screen Shake Effect
+        if (screenShake > 0) {
+            gameCtx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+            screenShake *= 0.85;
+            if (screenShake < 0.5) screenShake = 0;
+        }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-        // 1. Draw Background Stars
-        ctx.fillStyle = "#ffffff";
-        stars.forEach(star => {
-            star.y += star.speed;
-            if (star.y > canvas.height) star.y = 0;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
+        if (!isPlaying) { gameCtx.restore(); return; }
 
-        // 2. Move Player Keyboard
-        if (keys.Left && player.x > player.width/2) player.x -= player.speed;
-        if (keys.Right && player.x < canvas.width - player.width/2) player.x += player.speed;
+        // Power-up Timer
+        if (ship.powerTimer > 0) {
+            ship.powerTimer--;
+            document.getElementById('power-indicator').style.display = 'flex';
+        } else {
+            document.getElementById('power-indicator').style.display = 'none';
+        }
 
-        // 3. Draw Player Rocket
-        drawRocket(player.x, player.y);
+        // Ship Movement
+        if (keys.Left && ship.x > ship.width) ship.x -= ship.speed;
+        if (keys.Right && ship.x < gameCanvas.width - ship.width) ship.x += ship.speed;
 
-        // 4. Update & Render Bullets
-        ctx.fillStyle = '#ff0055';
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#ff0055';
-        bullets.forEach((b, bIdx) => {
+        // Auto Fire Mechanics (ยิงออโต้เมื่อกดค้าง)
+        if (ship.shootCooldown > 0) ship.shootCooldown--;
+        if ((keys.Space || isTouching) && ship.shootCooldown <= 0) {
+            fireBullet();
+            ship.shootCooldown = ship.powerTimer > 0 ? 5 : 9; // ยิงรัวขึ้นเมื่อมีไอเทม
+        }
+
+        // Draw Player Rocket
+        gameCtx.shadowBlur = 20; gameCtx.shadowColor = '#00f3ff';
+        gameCtx.fillStyle = '#ff0077';
+        gameCtx.beginPath();
+        gameCtx.moveTo(ship.x, ship.y - 30);
+        gameCtx.lineTo(ship.x - 22, ship.y + 20);
+        gameCtx.lineTo(ship.x + 22, ship.y + 20);
+        gameCtx.fill();
+
+        // Rocket Flame
+        gameCtx.fillStyle = '#ffea00';
+        gameCtx.beginPath();
+        gameCtx.moveTo(ship.x - 10, ship.y + 20);
+        gameCtx.lineTo(ship.x + 10, ship.y + 20);
+        gameCtx.lineTo(ship.x, ship.y + 35 + Math.random() * 12);
+        gameCtx.fill();
+        gameCtx.shadowBlur = 0;
+
+        // Bullets
+        gameCtx.fillStyle = '#00f3ff';
+        bullets.forEach((b, bi) => {
             b.y -= b.speed;
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            if (b.y < 0) bullets.splice(bIdx, 1);
+            gameCtx.shadowBlur = 12; gameCtx.shadowColor = '#00f3ff';
+            gameCtx.beginPath();
+            gameCtx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+            gameCtx.fill();
+            if (b.y < -10) bullets.splice(bi, 1);
         });
-        ctx.shadowBlur = 0;
+        gameCtx.shadowBlur = 0;
 
-        // 5. Update & Render Meteors (Falling Answer Balls)
+        // Meteors
         meteors.forEach((m) => {
             m.y += m.speed;
+            if (m.y > gameCanvas.height + 60) m.y = -60;
 
-            // Loop Meteor back to top if off-screen
-            if (m.y - m.radius > canvas.height) {
-                m.y = -40;
-            }
+            gameCtx.fillStyle = '#080b1c';
+            gameCtx.strokeStyle = m.val === currentQuiz.ans ? '#00f3ff' : '#ff0077';
+            gameCtx.lineWidth = 3;
+            gameCtx.beginPath();
+            gameCtx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+            gameCtx.fill(); gameCtx.stroke();
 
-            // Draw Meteor Bubble Body
-            ctx.beginPath();
-            ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(20, 25, 50, 0.9)";
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "#00f3ff";
-            ctx.stroke();
+            gameCtx.fillStyle = '#fff';
+            gameCtx.font = "700 20px 'Chakra Petch', sans-serif";
+            gameCtx.textAlign = 'center';
+            gameCtx.textBaseline = 'middle';
+            gameCtx.fillText(m.val, m.x, m.y);
 
-            // Draw Answer Value
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 15px 'Press Start 2P', monospace";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(m.value, m.x, m.y + 2);
+            // Collision Check with Bullets
+            bullets.forEach((b, bi) => {
+                if (Math.hypot(b.x - m.x, b.y - m.y) < m.radius + 8) {
+                    bullets.splice(bi, 1);
+                    createExplosion(m.x, m.y, m.val === currentQuiz.ans ? '#00f3ff' : '#ff0077');
 
-            // Collision Detection Bullet vs Meteor
-            bullets.forEach((b, bIdx) => {
-                const dist = Math.hypot(b.x - m.x, b.y - m.y);
-                if (dist < m.radius + b.radius) {
-                    bullets.splice(bIdx, 1);
-
-                    if (m.value === currentQuestion.answer) {
-                        playCorrectSound();
-                        score += 10;
-                        document.getElementById('score-val').innerText = score;
-                        generateQuestion(); // New Question
+                    if (m.val === currentQuiz.ans) {
+                        score += 20;
+                        document.getElementById('score-text').innerText = score;
+                        
+                        // Random Powerup Drop
+                        if (Math.random() < 0.4) {
+                            powerups.push({ x: m.x, y: m.y, type: 'RAPID' });
+                        }
+                        generateQuiz();
                     } else {
-                        playWrongSound();
-                        score = Math.max(0, score - 5);
-                        document.getElementById('score-val').innerText = score;
-                        m.y = -60; // Respawn wrongly shot meteor
+                        score = Math.max(0, score - 10);
+                        document.getElementById('score-text').innerText = score;
+                        m.y = -80;
                     }
                 }
             });
         });
 
+        // Powerups
+        powerups.forEach((p, pi) => {
+            p.y += 3.5;
+            gameCtx.fillStyle = '#ffea00';
+            gameCtx.font = "24px sans-serif";
+            gameCtx.textAlign = 'center';
+            gameCtx.fillText("⚡", p.x, p.y);
+
+            if (Math.hypot(ship.x - p.x, ship.y - p.y) < 45) {
+                soundPowerup();
+                ship.powerTimer = 350; // ใช้งานได้ 6 วิ
+                powerups.splice(pi, 1);
+            }
+            if (p.y > gameCanvas.height + 20) powerups.splice(pi, 1);
+        });
+
+        // Particles
+        particles.forEach((pt, pti) => {
+            pt.x += pt.vx; pt.y += pt.vy;
+            pt.alpha -= 0.035;
+            gameCtx.fillStyle = pt.color;
+            gameCtx.globalAlpha = Math.max(0, pt.alpha);
+            gameCtx.beginPath();
+            gameCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+            gameCtx.fill();
+            gameCtx.globalAlpha = 1;
+            if (pt.alpha <= 0) particles.splice(pti, 1);
+        });
+
+        gameCtx.restore();
         requestAnimationFrame(gameLoop);
     }
 
-    function endGame() {
-        isGameRunning = false;
-        clearInterval(timerInterval);
-        alert(`หมดเวลา! คุณ ${playerName} ทำได้ ${score} คะแนน`);
-        document.getElementById('start-overlay').style.display = 'flex';
+    function gameOver() {
+        isPlaying = false;
+        clearInterval(timer);
+        alert(`🏆 จบการรบ! คุณ ${playerName}\nทำคะแนนรวมได้ทั้งหมด: ${score} คะแนน`);
+        location.reload();
     }
+
+    resizeSpace();
+    initStars();
+    renderSpace();
+    resizeGame();
 </script>
 </body>
 </html>
